@@ -39,7 +39,7 @@ Minimalistinis Home Assistant priedas, sinchronizuojantis Shelly įrenginius su 
 1. Pridėkite šį repozitorijos URL į savo Home Assistant Supervisor:
 
 ```
-https://github.com/jusu-vartotojas/jusu-addon-repo
+https://github.com/smartinas/github-addon-repo
 ```
 
 2. Įdiekite ir paleiskite priedą.
