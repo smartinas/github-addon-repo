@@ -1,3 +1,0 @@
-#!/usr/bin/with-contenv bashio
-
-bashio::log.info "Shelly Sync service stopped"
