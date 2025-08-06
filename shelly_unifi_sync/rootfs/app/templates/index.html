@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shelly UniFi Sync</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .header {
+            background-color: #03a9f4;
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 500;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .controls {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            background-color: #03a9f4;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #0288d1;
+        }
+        
+        .btn-primary:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .devices-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1rem;
+        }
+        
+        .device-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        
+        .device-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .device-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+        
+        .device-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .device-mac {
+            font-size: 0.85rem;
+            color: #666;
+            font-family: monospace;
+        }
+        
+        .device-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        
+        .status-online {
+            background-color: #4caf50;
+        }
+        
+        .status-offline {
+            background-color: #f44336;
+        }
+        
+        .device-info {
+            display: grid;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .info-label {
+            color: #666;
+        }
+        
+        .info-value {
+            font-weight: 500;
+        }
+        
+        .device-actions {
+            margin-top: 1rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .btn-small {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+        
+        .btn-secondary {
+            background-color: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #03a9f4;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background-color: #ffebee;
+            color: #c62828;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+        
+        .success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+        
+        .log-container {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            max-height: 400px;
+            overflow-y: auto;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .log-entries {
+            font-family: monospace;
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+        
+        .log-entry {
+            padding: 0.25rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .log-info { color: #666; }
+        .log-warning { color: #ff9800; }
+        .log-error { color: #f44336; }
+        
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        
+        .badge-fixed-ip {
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            position: relative;
+            background-color: white;
+            margin: 15% auto;
+            padding: 2rem;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+        }
+        
+        .modal-header {
+            margin-bottom: 1rem;
+        }
+        
+        .modal-body {
+            margin-bottom: 1.5rem;
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔄 Shelly UniFi Sync</h1>
+    </div>
+    
+    <div class="container">
+        <div class="controls">
+            <div>
+                <button id="syncAllBtn" class="btn btn-primary" onclick="syncAll()">
+                    <span>🔄</span> Sinchronizuoti visus
+                </button>
+                <button class="btn btn-secondary" onclick="refreshDevices()">
+                    <span>🔃</span> Atnaujinti sąrašą
+                </button>
+            </div>
+            <div class="status">
+                <span id="statusText">Kraunama...</span>
+                <span id="lastSync"></span>
+            </div>
+        </div>
+        
+        <div id="messageArea"></div>
+        
+        <div id="devicesContainer">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Kraunami įrenginiai...</p>
+            </div>
+        </div>
+        
+        <div class="log-container">
+            <div class="log-header">
+                <h3>📋 Sinchronizavimo žurnalas</h3>
+                <button class="btn btn-small btn-secondary" onclick="clearLogs()">Išvalyti</button>
+            </div>
+            <div id="logEntries" class="log-entries"></div>
+        </div>
+    </div>
+
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Patvirtinimas</h3>
+            </div>
+            <div class="modal-body">
+                <p id="modalMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Atšaukti</button>
+                <button class="btn btn-primary" id="modalConfirmBtn">Patvirtinti</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API helper funkcija - automatiškai pritaiko URL pagal kontekstą
+        function apiCall(endpoint, options = {}) {
+            // Jei veikia per Ingress, naudojame relative paths
+            // Jei veikia tiesiogiai, naudojame absolute paths
+            const basePath = window.location.pathname.endsWith('/') 
+                ? window.location.pathname.slice(0, -1) 
+                : window.location.pathname;
+            
+            // Patikrinti ar esame Ingress aplinkoje
+            const isIngress = basePath.includes('/api/hassio_ingress/');
+            
+            let url;
+            if (isIngress) {
+                // Per Ingress - naudojame relative path
+                url = `.${endpoint}`;
+            } else if (basePath === '' || basePath === '/') {
+                // Tiesiogiai - naudojame absolute path
+                url = endpoint;
+            } else {
+                // Kitas atvejis - pridedame base path
+                url = `${basePath}${endpoint}`;
+            }
+            
+            return fetch(url, options);
+        }
+        
+        let devices = [];
+        let syncInProgress = false;
+        let logUpdateInterval = null;
+        
+        // Pradinė būsena
+        window.onload = function() {
+            refreshDevices();
+            updateLogs();
+            setInterval(updateStatus, 5000);
+        };
+        
+        function refreshDevices() {
+            apiCall('/api/devices')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        devices = data.devices;
+                        renderDevices();
+                        updateLastSync(data.last_sync);
+                    } else {
+                        showMessage('error', 'Nepavyko gauti įrenginių sąrašo');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showMessage('error', 'Klaida gaunant įrenginius');
+                });
+        }
+        
+        function renderDevices() {
+            const container = document.getElementById('devicesContainer');
+            
+            if (devices.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>Nerasta Shelly įrenginių</h3>
+                        <p>Patikrinkite ar turite Shelly įrenginių Home Assistant sistemoje</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = `
+                <div class="devices-grid">
+                    ${devices.map(device => renderDevice(device)).join('')}
+                </div>
+            `;
+        }
+        
+        function renderDevice(device) {
+            const unifi = device.unifi_info;
+            const isOnline = unifi.online;
+            const hasFixedIp = unifi.use_fixedip;
+            
+            return `
+                <div class="device-card">
+                    <div class="device-header">
+                        <div>
+                            <div class="device-name">${device.ha_name}</div>
+                            <div class="device-mac">${device.mac}</div>
+                        </div>
+                        <div class="device-status">
+                            <div class="status-dot ${isOnline ? 'status-online' : 'status-offline'}"></div>
+                            <span>${isOnline ? 'Online' : 'Offline'}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="device-info">
+                        <div class="info-row">
+                            <span class="info-label">UniFi vardas:</span>
+                            <span class="info-value">${unifi.name || '-'}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">IP adresas:</span>
+                            <span class="info-value">
+                                ${unifi.ip || '-'}
+                                ${hasFixedIp ? '<span class="badge badge-fixed-ip">Fixed</span>' : ''}
+                            </span>
+                        </div>
+                        ${hasFixedIp ? `
+                            <div class="info-row">
+                                <span class="info-label">Fixed IP:</span>
+                                <span class="info-value">${unifi.fixed_ip || '-'}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                    
+                    <div class="device-actions">
+                        <button class="btn btn-small btn-primary" onclick="syncDevice('${device.mac}', '${device.ha_name.replace(/'/g, "\\'")}')">
+                            Sinchronizuoti
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function syncAll() {
+            if (syncInProgress) {
+                showMessage('error', 'Sinchronizavimas jau vyksta');
+                return;
+            }
+            
+            showModal(
+                'Sinchronizuoti visus įrenginius?',
+                'Visi Shelly įrenginiai bus sinchronizuoti su UniFi controller.',
+                () => {
+                    syncInProgress = true;
+                    updateSyncButton();
+                    clearMessages();
+                    
+                    // Pradėti log atnaujinimą
+                    startLogUpdates();
+                    
+                    apiCall('/api/sync', { method: 'POST' })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                showMessage('success', 
+                                    `Sinchronizavimas baigtas: ${data.synced} sėkmingai, ${data.errors} klaidų`
+                                );
+                                refreshDevices();
+                            } else {
+                                showMessage('error', data.error || 'Sinchronizavimas nepavyko');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            showMessage('error', 'Klaida sinchronizuojant');
+                        })
+                        .finally(() => {
+                            syncInProgress = false;
+                            updateSyncButton();
+                            stopLogUpdates();
+                            updateLogs(); // Paskutinis atnaujinimas
+                        });
+                }
+            );
+        }
+        
+        function syncDevice(mac, name) {
+            if (syncInProgress) {
+                showMessage('error', 'Sinchronizavimas jau vyksta');
+                return;
+            }
+            
+            showModal(
+                `Sinchronizuoti "${name}"?`,
+                `Įrenginys bus sinchronizuotas su UniFi controller.`,
+                () => {
+                    clearMessages();
+                    startLogUpdates();
+                    
+                    apiCall(`/api/sync/${mac}`, { method: 'POST' })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                showMessage('success', `"${name}" sėkmingai sinchronizuotas`);
+                                refreshDevices();
+                            } else {
+                                showMessage('error', data.error || 'Sinchronizavimas nepavyko');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            showMessage('error', 'Klaida sinchronizuojant įrenginį');
+                        })
+                        .finally(() => {
+                            stopLogUpdates();
+                            updateLogs();
+                        });
+                }
+            );
+        }
+        
+        function updateStatus() {
+            apiCall('/api/status')
+                .then(response => response.json())
+                .then(data => {
+                    syncInProgress = data.sync_in_progress;
+                    updateSyncButton();
+                    updateLastSync(data.last_sync);
+                    
+                    document.getElementById('statusText').textContent = 
+                        syncInProgress ? '⏳ Sinchronizuojama...' : '✅ Paruošta';
+                })
+                .catch(error => console.error('Error updating status:', error));
+        }
+        
+        function updateSyncButton() {
+            const btn = document.getElementById('syncAllBtn');
+            btn.disabled = syncInProgress;
+            btn.innerHTML = syncInProgress ? 
+                '<span>⏳</span> Sinchronizuojama...' : 
+                '<span>🔄</span> Sinchronizuoti visus';
+        }
+        
+        function updateLastSync(timestamp) {
+            const elem = document.getElementById('lastSync');
+            if (timestamp) {
+                const date = new Date(timestamp);
+                elem.textContent = `Paskutinis sync: ${date.toLocaleString('lt-LT')}`;
+            } else {
+                elem.textContent = '';
+            }
+        }
+        
+        function showMessage(type, message) {
+            const area = document.getElementById('messageArea');
+            area.innerHTML = `<div class="${type}">${message}</div>`;
+            setTimeout(clearMessages, 5000);
+        }
+        
+        function clearMessages() {
+            document.getElementById('messageArea').innerHTML = '';
+        }
+        
+        function updateLogs() {
+            apiCall('/api/logs')
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.getElementById('logEntries');
+                    if (data.logs.length === 0) {
+                        container.innerHTML = '<div class="log-entry log-info">Žurnalas tuščias</div>';
+                        return;
+                    }
+                    
+                    container.innerHTML = data.logs.map(log => `
+                        <div class="log-entry log-${log.level}">
+                            <span>${log.timestamp}</span> - ${log.message}
+                        </div>
+                    `).join('');
+                    
+                    // Automatiškai slinkti į apačią
+                    container.scrollTop = container.scrollHeight;
+                })
+                .catch(error => console.error('Error updating logs:', error));
+        }
+        
+        function clearLogs() {
+            document.getElementById('logEntries').innerHTML = 
+                '<div class="log-entry log-info">Žurnalas išvalytas</div>';
+        }
+        
+        function startLogUpdates() {
+            updateLogs();
+            logUpdateInterval = setInterval(updateLogs, 1000);
+        }
+        
+        function stopLogUpdates() {
+            if (logUpdateInterval) {
+                clearInterval(logUpdateInterval);
+                logUpdateInterval = null;
+            }
+        }
+        
+        function showModal(title, message, onConfirm) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').textContent = message;
+            document.getElementById('modalConfirmBtn').onclick = function() {
+                closeModal();
+                onConfirm();
+            };
+            document.getElementById('confirmModal').style.display = 'block';
+        }
+        
+        function closeModal() {
+            document.getElementById('confirmModal').style.display = 'none';
+        }
+        
+        // Uždaryti modal paspaudus už jo ribų
+        window.onclick = function(event) {
+            const modal = document.getElementById('confirmModal');
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>

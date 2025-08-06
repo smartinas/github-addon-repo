@@ -1,0 +1,20 @@
+#!/usr/bin/with-contenv bashio
+
+bashio::log.info "Starting Shelly Sync app..."
+
+# Wait for nginx to start
+sleep 2
+
+# Read config
+export UNIFI_HOST=$(bashio::config 'unifi_host')
+export UNIFI_PORT=$(bashio::config 'unifi_port')
+export UNIFI_USER=$(bashio::config 'unifi_user')
+export UNIFI_PASS=$(bashio::config 'unifi_pass')
+export UNIFI_SITE=$(bashio::config 'unifi_site')
+export UNIFI_SSL_VERIFY=$(bashio::config 'ssl_verify')
+export NAME_PREFIX=$(bashio::config 'name_prefix')
+export DEBUG=$(bashio::config 'debug')
+export HA_CONFIG_PATH="/config"
+
+cd /app
+exec python3 -m gunicorn --bind 0.0.0.0:8099 --workers 2 --timeout 120 app:app

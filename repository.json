@@ -1,0 +1,8 @@
+{
+  "name": "Shelly UniFi Sync Add-ons",
+  "url": "https://github.com/smartinas/github-addon-repo",
+  "maintainer": "Martynas",
+  "addons": [
+    "shelly_unifi_sync"
+  ]
+}

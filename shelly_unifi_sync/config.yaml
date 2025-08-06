@@ -1,0 +1,41 @@
+name: "Shelly UniFi Sync"
+version: "1.0.1"
+slug: "shelly_unifi_sync"
+description: "Sinchronizuoja Shelly įrenginius su UniFi controller"
+arch:
+  - armhf
+  - armv7
+  - aarch64
+  - amd64
+  - i386
+init: false  # BŪTINA!
+startup: "application"
+boot: "auto"
+ingress: true
+ingress_port: 8099
+panel_icon: "mdi:sync"
+panel_title: "Shelly UniFi Sync"
+ports:
+  8099/tcp: 8099
+ports_description:
+  8099/tcp: "Web UI"
+options:
+  unifi_host: ""
+  unifi_port: 443
+  unifi_user: ""
+  unifi_pass: ""
+  unifi_site: "default"
+  ssl_verify: false
+  name_prefix: "SHELLY "
+  debug: false
+schema:
+  unifi_host: str
+  unifi_port: port
+  unifi_user: str
+  unifi_pass: password
+  unifi_site: str
+  ssl_verify: bool
+  name_prefix: str
+  debug: bool
+map:
+  - config:ro
