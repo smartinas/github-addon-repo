@@ -1,5 +1,5 @@
 name: "Shelly UniFi Sync"
-version: "1.0.1"
+version: "1.0.2"
 slug: "shelly_unifi_sync"
 description: "Sinchronizuoja Shelly įrenginius su UniFi controller, UPDATED hostnames check, wifi and lan"
 arch:
