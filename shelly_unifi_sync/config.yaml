@@ -1,7 +1,7 @@
 name: "Shelly UniFi Sync"
 version: "1.0.1"
 slug: "shelly_unifi_sync"
-description: "Sinchronizuoja Shelly įrenginius su UniFi controller"
+description: "Sinchronizuoja Shelly įrenginius su UniFi controller, UPDATED hostnames check, wifi and lan"
 arch:
   - armhf
   - armv7
