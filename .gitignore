@@ -1,0 +1,5 @@
+# Ignore the Python script itself
+printer.py
+
+# Ignore all snapshot files
+snapshot_*.txt
